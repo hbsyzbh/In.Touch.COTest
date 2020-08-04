@@ -49,13 +49,13 @@ Global variables and functions
 ***********************************************************************************************************************/
 void R_PORT_Create(void)
 {
-    P0 = _00_Pn0_OUTPUT_0;
+    P0 = _02_Pn1_OUTPUT_1;
     P4 = _00_Pn1_OUTPUT_0 | _00_Pn2_OUTPUT_0;
     P14 = _00_Pn0_OUTPUT_0;
     P15 = _01_Pn0_OUTPUT_1 | _02_Pn1_OUTPUT_1 | _04_Pn2_OUTPUT_1;
     POM0 = _01_POMn0_NCH_ON;
     ADPC = _09_ADPC_DI_ON;
-    PM0 = _00_PMn0_MODE_OUTPUT | _02_PMn1_NOT_USE | _04_PMn2_NOT_USE | _08_PMn3_NOT_USE | _10_PMn4_NOT_USE |
+    PM0 = _01_PMn0_NOT_USE | _00_PMn1_MODE_OUTPUT | _04_PMn2_NOT_USE | _08_PMn3_NOT_USE | _10_PMn4_NOT_USE |
           _20_PMn5_NOT_USE | _40_PMn6_NOT_USE | _80_PM0_DEFAULT;
     PM4 = _01_PMn0_NOT_USE | _00_PMn1_MODE_OUTPUT | _00_PMn2_MODE_OUTPUT | _08_PMn3_NOT_USE | _10_PMn4_NOT_USE |
           _20_PMn5_NOT_USE | _C0_PM4_DEFAULT;

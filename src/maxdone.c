@@ -35,9 +35,12 @@ typedef enum {
 
 #define ACK_HEAD (0x4F)
 
-#define ACK_CMD_POS	(1)
-#define ACK_LEN_POS	(2)
+#define ACK_CMD_POS		(1)
+#define ACK_LEN_POS		(2)
 #define ACK_DATA_POS	(3)
+
+#define ACK_OK	(0xF0)
+#define ACK_NG	(0xFF)
 
 typedef enum {
 	Uart_StartwaitHead,
@@ -92,7 +95,22 @@ void SetLed(unsigned char leds)
 	P15_bit.no0 = ! b;
 	P15_bit.no1 = ! g;
 	P15_bit.no2 = ! r;
+}
 
+static unsigned char SPI10_CMD_BUF[16];
+static unsigned char SPI10_ACK_BUF[16];
+static void spi10_sendcmd(unsigned char cmd, uint16_t datalen)
+{
+	SPI10_CMD_BUF[0] = cmd;
+	P0_bit.no1 = 0;
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 1,SPI10_ACK_BUF);
+	P0_bit.no1 = 1;
+}
+
+unsigned char TestSpiFlash()
+{
+	spi10_sendcmd(0x9F, 3);
+	return ACK_OK;
 }
 
 const unsigned char notsupport[] = {0x40, 0, 0};
@@ -152,6 +170,10 @@ static void analysisCmd()
 		R_UART2_Send(ackbuff, 	ACK_DATA_POS+6);
 		break;
 
+	case Cmd_testSPIFlash:
+		ackbuff[ACK_DATA_POS] = TestSpiFlash();
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
+		break;
 
 	case Cmd_testLED:
 		SetLed(revBuff[ACK_DATA_POS]);

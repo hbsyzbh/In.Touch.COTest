@@ -246,7 +246,7 @@ void r_csi10_interrupt(void)
 static void r_csi10_callback_receiveend(void)
 {
     /* Start user code. Do not edit comment generated here */
-	P0_bit.no1 = 1;
+	on_csi10_done();
     /* End user code. Do not edit comment generated here */
 }
 

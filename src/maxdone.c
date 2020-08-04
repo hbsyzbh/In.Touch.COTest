@@ -48,7 +48,8 @@ typedef enum {
 	Uart_revHeadStartwaitlen,
 	Uart_Waittinglen,
 	Uart_revlenStartwaitData,
-	Uart_waittingData
+	Uart_waittingData,
+	Uart_analysisData
 }	UART_STATE;
 
 UART_STATE UartState;
@@ -99,18 +100,37 @@ void SetLed(unsigned char leds)
 
 static unsigned char SPI10_CMD_BUF[16];
 static unsigned char SPI10_ACK_BUF[16];
+
+unsigned char g_csi10_done = 0;
+
 static void spi10_sendcmd(unsigned char cmd, uint16_t datalen)
 {
 	SPI10_CMD_BUF[0] = cmd;
 	P0_bit.no1 = 0;
+	g_csi10_done = 0;
 	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 1,SPI10_ACK_BUF);
+	while(g_csi10_done == 0);
+}
 
+void on_csi10_done()
+{
+	P0_bit.no1 = 1;
+	g_csi10_done = 1;
 }
 
 unsigned char TestSpiFlash()
 {
+	//01 40 15  S25FL116K
 	spi10_sendcmd(0x9F, 3);
-	return ACK_OK;
+	if( (SPI10_ACK_BUF[1] == 0x01) &&
+		(SPI10_ACK_BUF[2] == 0x40) &&
+		(SPI10_ACK_BUF[3] == 0x15)
+	) {
+		return ACK_OK;
+	}
+
+
+	return ACK_NG;
 }
 
 const unsigned char notsupport[] = {0x40, 0, 0};
@@ -208,6 +228,10 @@ void doUartTask()
 			}
 			break;
 
+		case Uart_analysisData:
+			analysisCmd();
+			break;
+
 		default:
 			break;
 	}
@@ -235,14 +259,14 @@ void on_uart2_receiveend(void)
 				if(datalen > 0) {
 					UartState = Uart_revlenStartwaitData;
 				} else {
-					analysisCmd();
+					UartState = Uart_analysisData;
 				}
 			} else {
 				UartState  = Uart_StartwaitHead;
 			}
 			break;
 		case Uart_waittingData:
-			analysisCmd();
+			UartState = Uart_analysisData;
 			break;
 	}
 }

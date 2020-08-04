@@ -58,7 +58,7 @@ void main(void)
     /* Start user code. Do not edit comment generated here */
     while (1U)
     {
-        ;
+    	doUartTask();
     }
     /* End user code. Do not edit comment generated here */
 }
@@ -73,7 +73,11 @@ void main(void)
 void R_MAIN_UserInit(void)
 {
     /* Start user code. Do not edit comment generated here */
+    R_UART2_Start();
+    R_RTC_Start();
     EI();
+
+	UART2_Sendstr("Zhubh@Maxdone.net\r\n");
     /* End user code. Do not edit comment generated here */
 }
 

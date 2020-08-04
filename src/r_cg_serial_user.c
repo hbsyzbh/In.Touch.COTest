@@ -341,6 +341,7 @@ void r_uart2_interrupt_send(void)
 static void r_uart2_callback_receiveend(void)
 {
     /* Start user code. Do not edit comment generated here */
+	on_uart2_receiveend();
     /* End user code. Do not edit comment generated here */
 }
 
@@ -366,6 +367,7 @@ static void r_uart2_callback_softwareoverrun(uint16_t rx_data)
 static void r_uart2_callback_sendend(void)
 {
     /* Start user code. Do not edit comment generated here */
+	g_u2_sendend = 1;
     /* End user code. Do not edit comment generated here */
 }
 

@@ -33,11 +33,11 @@ typedef enum {
 
 }	CMD_TYPE;
 
-#define RESP_HEAD (0x4F)
+#define ACK_HEAD (0x4F)
 
-#define RESP_CMD_POS	(1)
-#define RESP_LEN_POS	(2)
-#define RESP_DATA_POS	(3)
+#define ACK_CMD_POS	(1)
+#define ACK_LEN_POS	(2)
+#define ACK_DATA_POS	(3)
 
 typedef enum {
 	Uart_StartwaitHead,
@@ -84,34 +84,34 @@ static char isCmdDatalenValied()
 }
 
 const unsigned char notsupport[] = {0x40, 0, 0};
-const unsigned char hardwareType[] = {RESP_HEAD, 0, 1, 'C'};
-unsigned char respbuff[16] = {RESP_HEAD, 0};
+const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 'C'};
+unsigned char ackbuff[16] = {ACK_HEAD, 0};
 rtc_counter_value_t value;
 
 static void fillRTCRespBuf()
 {
-	respbuff[RESP_DATA_POS+0] = value.year;
-	respbuff[RESP_DATA_POS+1] = value.month;
-	respbuff[RESP_DATA_POS+2] = value.day;
-	respbuff[RESP_DATA_POS+3] = value.hour;
-	respbuff[RESP_DATA_POS+4] = value.min;
-	respbuff[RESP_DATA_POS+5] = value.sec;
+	ackbuff[ACK_DATA_POS+0] = value.year;
+	ackbuff[ACK_DATA_POS+1] = value.month;
+	ackbuff[ACK_DATA_POS+2] = value.day;
+	ackbuff[ACK_DATA_POS+3] = value.hour;
+	ackbuff[ACK_DATA_POS+4] = value.min;
+	ackbuff[ACK_DATA_POS+5] = value.sec;
 }
 
 static void fillRTCRespValue()
 {
-	value.year = revBuff[RESP_DATA_POS+0];
-	value.month = revBuff[RESP_DATA_POS+1];
-	value.day = revBuff[RESP_DATA_POS+2];
-	value.hour = revBuff[RESP_DATA_POS+3];
-	value.min = revBuff[RESP_DATA_POS+4];
-	value.sec = revBuff[RESP_DATA_POS+5];
+	value.year = revBuff[ACK_DATA_POS+0];
+	value.month = revBuff[ACK_DATA_POS+1];
+	value.day = revBuff[ACK_DATA_POS+2];
+	value.hour = revBuff[ACK_DATA_POS+3];
+	value.min = revBuff[ACK_DATA_POS+4];
+	value.sec = revBuff[ACK_DATA_POS+5];
 }
 
 static void analysisCmd()
 {
 
-	respbuff[RESP_CMD_POS] = cmd;
+	ackbuff[ACK_CMD_POS] = cmd;
 
 	switch(cmd) {
 	case Cmd_getType:
@@ -123,22 +123,29 @@ static void analysisCmd()
 		if(MD_OK == R_RTC_Set_CounterValue(value))
 		{
 			fillRTCRespBuf();
-			R_UART2_Send(respbuff, 	RESP_DATA_POS+6);
+			R_UART2_Send(ackbuff, 	ACK_DATA_POS+6);
 		} else {
 			R_UART2_Send(notsupport, 3);
 		}
 		break;
 
 	case Cmd_getRTC:
-		respbuff[RESP_LEN_POS] = 6;
+		ackbuff[ACK_LEN_POS] = 6;
 		if(MD_OK ==	R_RTC_Get_CounterValue(&value))
 		{
 			fillRTCRespBuf();
 		} else {
-			memset(&respbuff[RESP_DATA_POS], 0, 6);
+			memset(&ackbuff[ACK_DATA_POS], 0, 6);
 		}
-		R_UART2_Send(respbuff, 	RESP_DATA_POS+6);
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS+6);
 		break;
+
+
+	case Cmd_testLED:
+		ackbuff[ACK_DATA_POS] = revBuff[ACK_DATA_POS];
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
+		break;
+
 
 	default:
 		R_UART2_Send(notsupport, 3);

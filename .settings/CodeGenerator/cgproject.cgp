@@ -2447,9 +2447,9 @@
           <setting name="Transfer_mode" value="single" />
           <setting name="Data_length" value="8 bits" />
           <setting name="SSI00" value="Unused" />
-          <setting name="Data_direction" value="LSB" />
+          <setting name="Data_direction" value="MSB" />
           <setting name="Data_timing" value="type 1" />
-          <setting name="BaudrateVal" value="4000000" />
+          <setting name="BaudrateVal" value="19200" />
           <setting name="Clock" value="0" />
           <setting name="Transmit_end_callback_function" value="generated" />
           <setting name="Receive_end_callback_function" value="generated" />

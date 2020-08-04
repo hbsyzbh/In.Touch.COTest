@@ -104,7 +104,7 @@ static void spi10_sendcmd(unsigned char cmd, uint16_t datalen)
 	SPI10_CMD_BUF[0] = cmd;
 	P0_bit.no1 = 0;
 	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 1,SPI10_ACK_BUF);
-	P0_bit.no1 = 1;
+
 }
 
 unsigned char TestSpiFlash()

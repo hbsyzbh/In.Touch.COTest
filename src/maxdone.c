@@ -98,17 +98,81 @@ void SetLed(unsigned char leds)
 	P15_bit.no2 = ! r;
 }
 
-static unsigned char SPI10_CMD_BUF[16];
-static unsigned char SPI10_ACK_BUF[16];
+
+
+#define S25FL_JEDECID		(0x9F)
+#define S25FL_ERASE_SA		(0x20)
+#define S25FL_WRITE			(0x02)
+#define S25FL_READ			(0x03)
+
+#define S25FL_WRITEEN		(0x06)
+
+static unsigned char SPI10_CMD_BUF[32];
+static unsigned char SPI10_ACK_BUF[32];
 
 unsigned char g_csi10_done = 0;
 
-static void spi10_sendcmd(unsigned char cmd, uint16_t datalen)
+static unsigned char spi10_isS25FL116K(void)
 {
-	SPI10_CMD_BUF[0] = cmd;
+	SPI10_CMD_BUF[0] = S25FL_JEDECID;
 	P0_bit.no1 = 0;
 	g_csi10_done = 0;
-	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 1,SPI10_ACK_BUF);
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, 4, SPI10_ACK_BUF);
+	while(g_csi10_done == 0);
+
+	//01 40 15  S25FL116K
+	if( (SPI10_ACK_BUF[1] == 0x01) &&
+			(SPI10_ACK_BUF[2] == 0x40) &&
+			(SPI10_ACK_BUF[3] == 0x15)
+		) {
+		 return 1;
+	}else return 0;
+}
+
+static void spi10_read(unsigned char *addr, uint16_t datalen)
+{
+	SPI10_CMD_BUF[0] = S25FL_READ;
+	memcpy(&SPI10_CMD_BUF[1], addr, 3);
+	P0_bit.no1 = 0;
+	g_csi10_done = 0;
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 4, SPI10_ACK_BUF);
+	while(g_csi10_done == 0);
+}
+
+static void spi10_writeEnable()
+{
+	SPI10_CMD_BUF[0] = S25FL_WRITEEN;
+
+	P0_bit.no1 = 0;
+	g_csi10_done = 0;
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, 1, NULL);
+	while(g_csi10_done == 0);
+}
+
+static void spi10_erase(unsigned char *addr)
+{
+	spi10_writeEnable();
+
+	SPI10_CMD_BUF[0] = S25FL_ERASE_SA;
+	memcpy(&SPI10_CMD_BUF[1], addr, 3);
+
+	P0_bit.no1 = 0;
+	g_csi10_done = 0;
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, 4,SPI10_ACK_BUF);
+	while(g_csi10_done == 0);
+}
+
+static void spi10_write(unsigned char *addr, unsigned char *data, uint16_t datalen)
+{
+	spi10_writeEnable();
+
+	SPI10_CMD_BUF[0] = S25FL_WRITE;
+	memcpy(&SPI10_CMD_BUF[1], addr, 3);
+	memcpy(&SPI10_CMD_BUF[4], data, datalen);
+
+	P0_bit.no1 = 0;
+	g_csi10_done = 0;
+	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 4,SPI10_ACK_BUF);
 	while(g_csi10_done == 0);
 }
 
@@ -118,14 +182,55 @@ void on_csi10_done()
 	g_csi10_done = 1;
 }
 
+/**
+	S25FL116K Main Memory Address Map
+	Sector Size (kbyte)	4
+	Sector Count  512
+	Sector Range   SA0					SA511
+	Address Range  000000h-000FFFh    1FF000h-1FFFFFh
+ */
+#define TEST_ITEM		(2)
+unsigned char TestAddr[TEST_ITEM][3] = {
+   {0x00, 0x00, 0x00},
+   {0x1F, 0xF0, 0x00}
+};
+
 unsigned char TestSpiFlash()
 {
-	//01 40 15  S25FL116K
-	spi10_sendcmd(0x9F, 3);
-	if( (SPI10_ACK_BUF[1] == 0x01) &&
-		(SPI10_ACK_BUF[2] == 0x40) &&
-		(SPI10_ACK_BUF[3] == 0x15)
-	) {
+	int i, j;
+
+	if(spi10_isS25FL116K())
+	{
+		UART2_Sendstr("Check isS25FL116K OK");
+		for(i = 0; i < TEST_ITEM; i++)
+		{
+			//erase
+			spi10_erase(TestAddr[i]);
+			spi10_read(TestAddr[i], 8);
+			for(j = 0; j < 8; j++)
+			if(0xFF != SPI10_ACK_BUF[4+j]) {
+				UART2_Sendstr("Check read as 0xFF NG");
+				return ACK_NG;
+			}
+			//write 1234567
+			spi10_write(TestAddr[i], "1234567", 8);
+			//read as 1234567
+			spi10_read(TestAddr[i], 8);
+			if(0 != strncmp("1234567", &SPI10_ACK_BUF[4], 8)) {
+				UART2_Sendstr("Check read as 1234567 NG");
+				return ACK_NG;
+			}
+			//erase
+			spi10_erase(TestAddr[i]);
+			//read as all 0xFF
+			spi10_read(TestAddr[i], 8);
+			for(j = 0; j < 8; j++)
+			if(0xFF != SPI10_ACK_BUF[4+j]) {
+				UART2_Sendstr("Check read as 0xFF NG");
+				return ACK_NG;
+			}
+		}
+
 		return ACK_OK;
 	}
 

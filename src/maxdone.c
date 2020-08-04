@@ -83,6 +83,18 @@ static char isCmdDatalenValied()
 	return 0;
 }
 
+void SetLed(unsigned char leds)
+{
+	unsigned char b = leds & 0x1;
+	unsigned char g = leds & 0x2;
+	unsigned char r = leds & 0x4;
+
+	P15_bit.no0 = ! b;
+	P15_bit.no1 = ! g;
+	P15_bit.no2 = ! r;
+
+}
+
 const unsigned char notsupport[] = {0x40, 0, 0};
 const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 'C'};
 unsigned char ackbuff[16] = {ACK_HEAD, 0};
@@ -142,6 +154,7 @@ static void analysisCmd()
 
 
 	case Cmd_testLED:
+		SetLed(revBuff[ACK_DATA_POS]);
 		ackbuff[ACK_DATA_POS] = revBuff[ACK_DATA_POS];
 		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
 		break;

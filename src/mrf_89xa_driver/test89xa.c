@@ -62,8 +62,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "drv_mrf_89xa.h"
 
 BOOL PHY_IRQ1_En;
-BOOL Config_nCS;
-BOOL Data_nCS;
+//BOOL Config_nCS;
+//BOOL Data_nCS;
 
 ////define the configuration bits for PIC18 Explorer - PIC18F87J11
 ////#if defined(__18F87J11)
@@ -191,13 +191,97 @@ void PrintMiniStatus(BYTE);
 void ResetMRF89XA(void);
 void Setup(void);
 	
-
 void drv_testMRF89XA()
+{
+	BYTE TxPacket_Len;
+	BYTE i;
+	WORD j,k;
+
+	for(i=0;i<sizeof(PredefinedPacket);i++)
+		TxPacket[i] = PredefinedPacket[i];
+	TxPacket_Len = sizeof(PredefinedPacket);
+
+	Send_Packet(TxPacket_Len);
+}
+
+void drv_initMRF89XA()
 {
 	//call all the initialization routines
 	MRF89XAInit();			//initialize MRF89XA
-	//Setup();				//Configure the basic settings
+	Setup();				//Configure the basic settings
 	//Print the Main menu on the screen
+}
+
+void Setup(void)
+{
+
+	BYTE input;
+	SetRFMode(RF_STANDBY);
+										//Program the chip to standby mode before changing from FSK to OOK or OOK to FSK
+	//FSK Modulation
+	Modulation_Type = TRUE;
+	//Program FSK Modulation parameters
+	input = RegisterRead(REG_MCPARAM1);
+	input = ((input & 0x3F) | MODSEL_FSK);
+	RegisterSet(REG_MCPARAM1, input);
+#if 0
+	//c(" 2. Frequency Band = 915-928 MHz, Center Frequency = 916 MHz\r\n");
+	//case '2':
+	FREQ_BAND = FREQ_BAND_RESET = FREQBAND_915;
+	RVALUE = RVALUE_RESET = 119;
+	PVALUE = PVALUE_RESET = 100;
+	SVALUE = SVALUE_RESET =	50;
+#else
+	//c(" 4. Frequency Band = 863-870 MHz, Center Frequency = 868 MHz\r\n");
+	//case '4':
+	FREQ_BAND = FREQ_BAND_RESET = FREQBAND_950;
+	RVALUE = RVALUE_RESET = 125;
+	PVALUE = PVALUE_RESET = 100;
+	SVALUE = SVALUE_RESET = 20;
+#endif
+
+	RegisterSet(REG_MCPARAM0, ((InitConfigRegs[REG_MCPARAM0]&0xE7)|FREQ_BAND));
+	if(FREQ_BAND == FREQBAND_950)
+	{
+		BYTE readback = RegisterRead(REG_MCPARAM0);
+		readback = (readback & 0xF8);
+		RegisterSet(REG_MCPARAM0, readback);
+	}
+	RegisterSet(REG_R1, RVALUE);
+	RegisterSet(REG_P1, PVALUE);
+	RegisterSet(REG_S1, SVALUE);
+
+	//c(" 1. DataRate = 2 kbps, BW = 50 KHz, Frequency Deviation = 33 KHz\r\n");
+	//	case '1':
+	Rate_C = BITRATE_2; Rate_R = 2;
+	FREQ_BW = RXFC_FOPLUS50;
+	TX_FSK = FREGDEV_33;
+	PFILTER_SETTING = PASSIVEFILT_157;
+	RegisterSet(REG_BITRATE, Rate_C);
+	RegisterSet(REG_RXPARAM0, (FREQ_BW | PFILTER_SETTING));
+	RegisterSet(REG_FREGDEV, TX_FSK);
+
+	//Perform frequency synthesization
+	input = RegisterRead(REG_MCPARAM0);
+	RegisterSet(REG_MCPARAM0, (input & 0x1F) | RF_SYNTHESIZER);
+	RF_Mode = RF_SYNTHESIZER;
+
+	//clear PLL_LOCK flag so we can see it restore on the new frequency
+	input = RegisterRead(REG_IRQPARAM1);
+	RegisterSet(REG_IRQPARAM1, (input | 0x02));
+
+	SetRFMode(RF_RECEIVER);
+	//transceiver will be set to FSK or OOK mode
+	//Include delay and put the chip back to standby mode
+	{
+	WORD i;
+	for(i=0;i<5000;i++)
+	{
+		;
+	}
+	}
+	SetRFMode(RF_STANDBY);
+
 }
 
 /*********************************************************************

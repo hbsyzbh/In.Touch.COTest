@@ -50,8 +50,8 @@ Global variables and functions
 void R_PORT_Create(void)
 {
     P0 = _02_Pn1_OUTPUT_1;
-    P4 = _00_Pn1_OUTPUT_0 | _00_Pn2_OUTPUT_0;
-    P14 = _00_Pn0_OUTPUT_0;
+    P4 = _02_Pn1_OUTPUT_1 | _04_Pn2_OUTPUT_1;
+    P14 = _01_Pn0_OUTPUT_1;
     P15 = _01_Pn0_OUTPUT_1 | _02_Pn1_OUTPUT_1 | _04_Pn2_OUTPUT_1;
     POM0 = _01_POMn0_NCH_ON;
     ADPC = _09_ADPC_DI_ON;

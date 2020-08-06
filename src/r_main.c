@@ -76,9 +76,11 @@ void R_MAIN_UserInit(void)
     R_UART2_Start();
     R_RTC_Start();
     R_CSI10_Start();
+    R_CSI01_Start();
     EI();
 
 	UART2_Sendstr("Zhubh@Maxdone.net\r\n");
+    drv_initMRF89XA();
     /* End user code. Do not edit comment generated here */
 }
 

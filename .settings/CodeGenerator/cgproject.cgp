@@ -1690,7 +1690,6 @@
         <pior1_value Name="pior1_value" Value="00" />
         <cg_security1 Name="cg_security1" Value="00" />
         <cg_security9 Name="cg_security9" Value="00" />
-        <lvi_option Name="lvi_option" Value="FF" />
         <cg_security6 Name="cg_security6" Value="00" />
         <cg_crc_area Name="cg_crc_area" Value="00" />
         <cg_iawctl_value Name="cg_iawctl_value" Value="00" />
@@ -1700,8 +1699,9 @@
         <cg_security3 Name="cg_security3" Value="00" />
         <cg_security4 Name="cg_security4" Value="00" />
         <pior_value Name="pior_value" Value="00" />
-        <cg_security7 Name="cg_security7" Value="00" />
         <cg_option Name="cg_option" Value="04" />
+        <cg_security7 Name="cg_security7" Value="00" />
+        <lvi_option Name="lvi_option" Value="FF" />
       </GlobleUserTag>
     </TAG>
   </DIR>
@@ -2021,14 +2021,14 @@
           <setting name="Pull_up" value="unused" />
           <setting name="TTL_buffer" value="unused" />
           <setting name="N-ch_open-drain" value="unused" />
-          <setting name="Output_value" value="0" />
+          <setting name="Output_value" value="1" />
         </P41>
         <P42>
           <setting name="Operation" value="output" />
           <setting name="Pull_up" value="unused" />
           <setting name="TTL_buffer" value="unused" />
           <setting name="N-ch_open-drain" value="unused" />
-          <setting name="Output_value" value="0" />
+          <setting name="Output_value" value="1" />
         </P42>
         <P43>
           <setting name="Operation" value="unused" />
@@ -2300,7 +2300,7 @@
           <setting name="Pull_up" value="unused" />
           <setting name="TTL_buffer" value="unused" />
           <setting name="N-ch_open-drain" value="unused" />
-          <setting name="Output_value" value="0" />
+          <setting name="Output_value" value="1" />
         </P140>
         <P141>
           <setting name="Operation" value="unused" />
@@ -2419,7 +2419,7 @@
           <setting name="SSI00" value="Unused" />
           <setting name="Data_direction" value="MSB" />
           <setting name="Data_timing" value="type 1" />
-          <setting name="BaudrateVal" value="9600" />
+          <setting name="BaudrateVal" value="19200" />
           <setting name="Clock" value="0" />
           <setting name="Transmit_end_callback_function" value="generated" />
           <setting name="Receive_end_callback_function" value="generated" />

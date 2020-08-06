@@ -125,6 +125,7 @@
 ////
 ////#endif
 ////
+#include "iodefine.h"
 
 #ifndef __DRV_MRF_H
     #define __DRV_MRF_H
@@ -149,7 +150,9 @@ void SetRFMode(BYTE);								//Program RF mode
 
 
 extern BOOL PHY_IRQ1_En;
-extern BOOL Config_nCS;
-extern BOOL Data_nCS;
+//extern BOOL Config_nCS;
+//extern BOOL Data_nCS;
+#define Config_nCS P4_bit.no1
+#define Data_nCS P4_bit.no2
 
 #endif

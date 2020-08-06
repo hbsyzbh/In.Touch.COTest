@@ -145,6 +145,7 @@ void r_csi01_interrupt(void)
 static void r_csi01_callback_receiveend(void)
 {
     /* Start user code. Do not edit comment generated here */
+	on_csi01_done();
     /* End user code. Do not edit comment generated here */
 }
 

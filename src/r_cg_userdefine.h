@@ -36,6 +36,7 @@ User definitions
 /* Start user code for function. Do not edit comment generated here */
 	extern unsigned char g_u2_sendend;
 
+	extern void on_csi01_done(void);
 	extern void on_csi10_done(void);
 	extern void on_uart2_receiveend(void);
 /* End user code. Do not edit comment generated here */

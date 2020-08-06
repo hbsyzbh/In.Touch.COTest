@@ -192,6 +192,14 @@ void ResetMRF89XA(void);
 void Setup(void);
 	
 
+void drv_testMRF89XA()
+{
+	//call all the initialization routines
+	MRF89XAInit();			//initialize MRF89XA
+	//Setup();				//Configure the basic settings
+	//Print the Main menu on the screen
+}
+
 /*********************************************************************
  * void MRF89XAInit(void)
  *

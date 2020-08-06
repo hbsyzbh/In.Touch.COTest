@@ -266,7 +266,7 @@ static void fillRTCRespValue()
 
 static unsigned char TestMRF89XA()
 {
-
+	drv_testMRF89XA();
 	return ACK_OK;
 }
 

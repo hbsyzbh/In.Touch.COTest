@@ -6,10 +6,11 @@
 #include "string.h"
 
 unsigned char g_u2_sendend = 0;
-
+unsigned char debug = 0;
 void UART2_Sendstr(char *str)
 {
 	if(str == 0) return;
+	if(! debug) return;
 
 	g_u2_sendend = 0;
 	R_UART2_Send(str, strlen(str));
@@ -263,6 +264,12 @@ static void fillRTCRespValue()
 	value.sec = revBuff[ACK_DATA_POS+5];
 }
 
+static unsigned char TestMRF89XA()
+{
+
+	return ACK_OK;
+}
+
 static void analysisCmd()
 {
 
@@ -316,6 +323,8 @@ static void analysisCmd()
 
 void doUartTask()
 {
+	TestMRF89XA();
+
 	switch(UartState)
 	{
 		case Uart_StartwaitHead:

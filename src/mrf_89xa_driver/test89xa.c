@@ -204,12 +204,18 @@ void drv_testMRF89XA()
 	Send_Packet(TxPacket_Len);
 }
 
+unsigned char Regs[32];
 void drv_initMRF89XA()
 {
+	unsigned char i;
 	//call all the initialization routines
 	MRF89XAInit();			//initialize MRF89XA
 	Setup();				//Configure the basic settings
-	//Print the Main menu on the screen
+
+	for (i = 0 ; i <= 31; i++)
+	{
+		Regs[i] = RegisterRead(i);
+	}
 }
 
 void Setup(void)

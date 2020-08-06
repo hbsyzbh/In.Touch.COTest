@@ -37,6 +37,7 @@ User definitions
 	#define MRF89XA_RESET P14_bit.no0
 
 	extern unsigned char g_u2_sendend;
+	extern unsigned char g_i2c_done;
 
 	extern void on_csi01_done(void);
 	extern void on_csi10_done(void);

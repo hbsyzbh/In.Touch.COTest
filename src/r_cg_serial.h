@@ -380,9 +380,6 @@ Macro definitions
 #define _10_IICA0_MASTERADDRESS          (0x10U)
 #define _55_IICA0_IICWH_VALUE            (0x55U)
 #define _4C_IICA0_IICWL_VALUE            (0x4CU)
-#define _10_IICA1_MASTERADDRESS          (0x10U)
-#define _55_IICA1_IICWH_VALUE            (0x55U)
-#define _4C_IICA1_IICWL_VALUE            (0x4CU)
 
 /***********************************************************************************************************************
 Typedef definitions
@@ -426,16 +423,6 @@ static void r_iica0_callback_master_receiveend(void);
 static void r_iica0_callback_master_error(MD_STATUS flag);
 static void iica0_master_handler(void);
 static void iica0_slave_handler(void);
-void R_IICA1_Create(void);
-MD_STATUS R_IICA1_Master_Send(uint8_t adr, uint8_t * const tx_buf, uint16_t tx_num, uint8_t wait);
-MD_STATUS R_IICA1_Master_Receive(uint8_t adr, uint8_t * const rx_buf, uint16_t rx_num, uint8_t wait);
-void R_IICA1_Stop(void);
-void R_IICA1_StopCondition(void);
-static void r_iica1_callback_master_sendend(void);
-static void r_iica1_callback_master_receiveend(void);
-static void r_iica1_callback_master_error(MD_STATUS flag);
-static void iica1_master_handler(void);
-static void iica1_slave_handler(void);
 
 /* Start user code for function. Do not edit comment generated here */
 /* End user code. Do not edit comment generated here */

@@ -77,6 +77,7 @@ void R_MAIN_UserInit(void)
     R_RTC_Start();
     R_CSI10_Start();
     R_CSI01_Start();
+    R_INTC0_Start();
     EI();
 
     MRF89XA_RESET = 0;

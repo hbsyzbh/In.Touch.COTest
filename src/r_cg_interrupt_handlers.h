@@ -58,8 +58,6 @@ void r_csi10_interrupt(void) __attribute__ ((interrupt));
 void r_iica0_interrupt(void) __attribute__ ((interrupt));
 //0x4C
 void r_intc7_interrupt(void) __attribute__ ((interrupt));
-//0x60
-void r_iica1_interrupt(void) __attribute__ ((interrupt));
 //Hardware Vectors
 //0x0
 void PowerON_Reset(void) __attribute__ ((interrupt));

@@ -62,13 +62,6 @@ extern volatile uint16_t  g_iica0_rx_cnt;              /* iica0 receive data len
 extern volatile uint16_t  g_iica0_rx_len;              /* iica0 receive data count */
 extern volatile uint8_t * gp_iica0_tx_address;         /* iica0 send buffer address */
 extern volatile uint16_t  g_iica0_tx_cnt;              /* iica0 send data count */
-extern volatile uint8_t   g_iica1_master_status_flag;  /* iica1 master flag */ 
-extern volatile uint8_t   g_iica1_slave_status_flag;   /* iica1 slave flag */
-extern volatile uint8_t * gp_iica1_rx_address;         /* iica1 receive buffer address */
-extern volatile uint16_t  g_iica1_rx_cnt;              /* iica1 receive data length */
-extern volatile uint16_t  g_iica1_rx_len;              /* iica1 receive data count */
-extern volatile uint8_t * gp_iica1_tx_address;         /* iica1 send buffer address */
-extern volatile uint16_t  g_iica1_tx_cnt;              /* iica1 send data count */
 /* Start user code for global. Do not edit comment generated here */
 /* End user code. Do not edit comment generated here */
 
@@ -523,6 +516,7 @@ static void r_iica0_callback_master_receiveend(void)
 {
     SPT0 = 1U;
     /* Start user code. Do not edit comment generated here */
+    g_i2c_done = 1;
     /* End user code. Do not edit comment generated here */
 }
 
@@ -536,159 +530,7 @@ static void r_iica0_callback_master_sendend(void)
 {
     SPT0 = 1U;
     /* Start user code. Do not edit comment generated here */
-    /* End user code. Do not edit comment generated here */
-}
-
-/***********************************************************************************************************************
-* Function Name: r_iica1_interrupt
-* Description  : This function is INTIICA1 interrupt service routine.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-void r_iica1_interrupt(void)
-{
-    if ((IICS1 & _80_IICA_STATUS_MASTER) == 0x80U)
-    {
-        iica1_master_handler();
-    }
-}
-
-/***********************************************************************************************************************
-* Function Name: iica1_master_handler
-* Description  : This function is IICA1 master handler.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-static void iica1_master_handler(void)
-{
-    /* Control for communication */
-    if ((0U == IICBSY1) && (g_iica1_tx_cnt != 0U))
-    {
-        r_iica1_callback_master_error(MD_SPT);
-    }
-    /* Control for sended address */
-    else
-    {
-        if ((g_iica1_master_status_flag & _80_IICA_ADDRESS_COMPLETE) == 0U)
-        {
-            if (1U == ACKD1)
-            {
-                g_iica1_master_status_flag |= _80_IICA_ADDRESS_COMPLETE;
-                
-                if (1U == TRC1)
-                {
-                    WTIM1 = 1U;
-                    
-                    if (g_iica1_tx_cnt > 0U)
-                    {
-                        IICA1 = *gp_iica1_tx_address;
-                        gp_iica1_tx_address++;
-                        g_iica1_tx_cnt--;
-                    }
-                    else
-                    {
-                        r_iica1_callback_master_sendend();
-                    }
-                }
-                else
-                {
-                    ACKE1 = 1U;
-                    WTIM1 = 0U;
-                    WREL1 = 1U;
-                }
-            }
-            else
-            {
-                r_iica1_callback_master_error(MD_NACK);
-            }
-        }
-        else
-        {
-            /* Master send control */
-            if (1U == TRC1)
-            {
-                if ((0U == ACKD1) && (g_iica1_tx_cnt != 0U))
-                {
-                    r_iica1_callback_master_error(MD_NACK);
-                }
-                else
-                {
-                    if (g_iica1_tx_cnt > 0U)
-                    {
-                        IICA1 = *gp_iica1_tx_address;
-                        gp_iica1_tx_address++;
-                        g_iica1_tx_cnt--;
-                    }
-                    else
-                    {
-                        r_iica1_callback_master_sendend();
-                    }
-                }
-            }
-            /* Master receive control */
-            else
-            {
-                if (g_iica1_rx_cnt < g_iica1_rx_len)
-                {
-                    *gp_iica1_rx_address = IICA1;
-                    gp_iica1_rx_address++;
-                    g_iica1_rx_cnt++;
-                    
-                    if (g_iica1_rx_cnt == g_iica1_rx_len)
-                    {
-                        ACKE1 = 0U;
-                        WTIM1 = 1U;
-                        WREL1 = 1U;
-                    }
-                    else
-                    {
-                        WREL1 = 1U;
-                    }
-                }
-                else
-                {
-                    r_iica1_callback_master_receiveend();
-                }
-            }
-        }
-    }
-}
-
-/***********************************************************************************************************************
-* Function Name: r_iica1_callback_master_error
-* Description  : This function is a callback function when IICA1 master error occurs.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-static void r_iica1_callback_master_error(MD_STATUS flag)
-{
-    /* Start user code. Do not edit comment generated here */
-    /* End user code. Do not edit comment generated here */
-}
-
-/***********************************************************************************************************************
-* Function Name: r_iica1_callback_master_receiveend
-* Description  : This function is a callback function when IICA1 finishes master reception.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-static void r_iica1_callback_master_receiveend(void)
-{
-    SPT1 = 1U;
-    /* Start user code. Do not edit comment generated here */
-    /* End user code. Do not edit comment generated here */
-}
-
-/***********************************************************************************************************************
-* Function Name: r_iica1_callback_master_sendend
-* Description  : This function is a callback function when IICA1 finishes master transmission.
-* Arguments    : None
-* Return Value : None
-***********************************************************************************************************************/
-static void r_iica1_callback_master_sendend(void)
-{
-    SPT1 = 1U;
-    /* Start user code. Do not edit comment generated here */
+    g_i2c_done = 1;
     /* End user code. Do not edit comment generated here */
 }
 

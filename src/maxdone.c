@@ -5,6 +5,7 @@
 #include "r_cg_rtc.h"
 #include "string.h"
 
+unsigned char g_i2c_done = 0;
 unsigned char g_u2_sendend = 0;
 unsigned char debug = 0;
 void UART2_Sendstr(char *str)
@@ -239,6 +240,29 @@ unsigned char TestSpiFlash()
 	return ACK_NG;
 }
 
+unsigned char TestI2cPort()
+{
+	unsigned char sendbuf[8] = " Maxdone";
+	unsigned char revbuf[8] = {0};
+	const unsigned char deviceaddr = 0xA0;
+	unsigned char I2cAddr = 0x0;
+
+	sendbuf[0] = I2cAddr;
+	g_i2c_done = 0;
+	if(MD_OK == R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 200)){
+		while (g_i2c_done == 0);
+
+		g_i2c_done = 0;
+		if (MD_OK == R_IICA0_Master_Receive(deviceaddr, revbuf, 8, 200)) {
+			while (g_i2c_done == 0);
+
+			return ACK_OK;
+		}
+	}
+
+	return ACK_NG;
+}
+
 const unsigned char notsupport[] = {0x40, 0, 0};
 const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 'C'};
 unsigned char ackbuff[16] = {ACK_HEAD, 0};
@@ -313,6 +337,11 @@ static void analysisCmd()
 		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
 		break;
 
+	case Cmd_testI2CPort:
+		ackbuff[ACK_DATA_POS] = TestI2cPort();
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
+		break;
+
 
 	default:
 		R_UART2_Send(notsupport, 3);
@@ -323,7 +352,7 @@ static void analysisCmd()
 
 void doUartTask()
 {
-	TestMRF89XA();
+	//TestMRF89XA();
 
 	switch(UartState)
 	{

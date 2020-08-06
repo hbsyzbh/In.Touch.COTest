@@ -2300,7 +2300,7 @@
           <setting name="Pull_up" value="unused" />
           <setting name="TTL_buffer" value="unused" />
           <setting name="N-ch_open-drain" value="unused" />
-          <setting name="Output_value" value="1" />
+          <setting name="Output_value" value="0" />
         </P140>
         <P141>
           <setting name="Operation" value="unused" />
@@ -2418,7 +2418,7 @@
           <setting name="Data_length" value="8 bits" />
           <setting name="SSI00" value="Unused" />
           <setting name="Data_direction" value="MSB" />
-          <setting name="Data_timing" value="type 1" />
+          <setting name="Data_timing" value="type 4" />
           <setting name="BaudrateVal" value="19200" />
           <setting name="Clock" value="0" />
           <setting name="Transmit_end_callback_function" value="generated" />
@@ -2593,10 +2593,10 @@
     </IICA1>
     <INTP>
       <INTP0>
-        <setting name="Valid_edge" value="falling" />
+        <setting name="Valid_edge" value="rising" />
         <setting name="Operation" value="used" />
-        <setting name="ValidEdge" value="0" />
-        <setting name="Interrupt_priority" value="3" />
+        <setting name="ValidEdge" value="1" />
+        <setting name="Interrupt_priority" value="0" />
         <setting name="pinsel" value="-1" />
       </INTP0>
       <INTP1>

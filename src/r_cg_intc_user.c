@@ -50,6 +50,7 @@ Global variables and functions
 void r_intc0_interrupt(void)
 {
     /* Start user code. Do not edit comment generated here */
+	onIRQ1();
     /* End user code. Do not edit comment generated here */
 }
 

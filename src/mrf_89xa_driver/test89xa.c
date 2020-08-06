@@ -303,7 +303,30 @@ void MRF89XAInit(void)
 {
 	BYTE input,i=0;
 
-    // configuring the MRF89XA radio
+#if 0
+	{
+		DWORD delay;
+		for(;;) {
+			BYTE test = RegisterRead(0);
+			if((test == 0x28) || (test == 0x30)) {
+				break;
+			}
+			for(delay=0; delay<5000; delay++) {
+				;
+			}
+		}
+
+		for(;;) {
+			RegisterSet(0, InitConfigRegs[0]);
+
+			for(delay=0; delay<5000; delay++) {
+				;
+			}
+		}
+	}
+#endif
+
+	// configuring the MRF89XA radio
 	
   	//Configure MRF89XA Initialization parameters
 /*
@@ -388,92 +411,7 @@ void ResetMRF89XA(void)
 	CONSOLE_PutString ((char *)"MRF89XA Device has been reset \r\n");
 }
 
-#if 0
-/*********************************************************************
- * Function:        void HighISR(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    Various flags and registers set.
- *
- * Overview:        This is the interrupt handler for the MRF89XA
- *                  
- ********************************************************************/
-#if defined(__XC8)
-    void interrupt  high_isr (void)
-#elif defined(__18CXX)
-    #pragma interruptlow HighISR
-    void HighISR(void)
-#else
-    void _ISRFAST __attribute__((interrupt, auto_psv)) _INT1Interrupt(void)
-#endif
-{       
-		
-   	#if defined(__18F87J11)
-	if(PHY_IRQ1 && PHY_IRQ1_En)
-		{
-				
-					
-				IRQ1_Received = TRUE;
-				PHY_IRQ1 = 0;
-				
-		}
-	#else
-	if(PHY_IRQ0 && PHY_IRQ0_En)
-    {   
-			if(RF_Mode == RF_RECEIVER)
-					RSSIRegVal = (RegisterRead(REG_RSSIVALUE)>>1);
-			else
-				IRQ0_Received = TRUE; 
-			PHY_IRQ0 = 0;    	
-    }
-	#endif
-		return;
-}    		
-#if defined(__PIC24F__)
-void _ISRFAST __attribute__((interrupt, auto_psv)) _INT2Interrupt(void)
+void onIRQ1(void)
 {
-if(PHY_IRQ1 && PHY_IRQ1_En)
-		{
-		if(Data_Mode == DATAMODE_CONTINUOUS)
-			{
-				DATA_PIN = RandomBuffer[Data_out];
-				Data_out= Data_out+1;
-				if(Data_out == 100) Data_out = 0;
-			}
-		else
-			{
-				IRQ1_Received = TRUE;
-			}
-				PHY_IRQ1 = 0;
-				return;
-		}
-	
+	IRQ1_Received = 1;
 }
-#endif
-//******************************************************************************
-// Interrupt Vectors
-//******************************************************************************
-////#if defined(__18F87J11)
-////#pragma code highVector=0x08
-////void HighVector (void)
-////{
-////    _asm goto HighISR _endasm
-////}
-////#pragma code // return to default code section 
-////#endif
-////
-////#if defined(__18F87J11)
-////#pragma code lowhVector=0x18
-////void LowVector (void)
-////{
-////    _asm goto HighISR _endasm
-////}
-////#pragma code // return to default code section 
-////#endif
-
-#endif

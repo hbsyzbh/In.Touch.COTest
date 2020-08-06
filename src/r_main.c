@@ -79,6 +79,7 @@ void R_MAIN_UserInit(void)
     R_CSI01_Start();
     EI();
 
+    MRF89XA_RESET = 0;
 	UART2_Sendstr("Zhubh@Maxdone.net\r\n");
     drv_initMRF89XA();
     /* End user code. Do not edit comment generated here */

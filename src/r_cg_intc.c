@@ -73,13 +73,14 @@ void R_INTC_Create(void)
     PIF10 = 0U;    /* clear INTP10 interrupt flag */
     PMK11 = 1U;    /* disable INTP11 operation */
     PIF11 = 0U;    /* clear INTP11 interrupt flag */
-    /* Set INTP0 low priority */
-    PPR10 = 1U;
-    PPR00 = 1U;
+    /* Set INTP0 high priority */
+    PPR10 = 0U;
+    PPR00 = 0U;
     /* Set INTP7 low priority */
     PPR17 = 1U;
     PPR07 = 1U;
-    EGN0 = _01_INTP0_EDGE_FALLING_SEL | _80_INTP7_EDGE_FALLING_SEL;
+    EGN0 = _80_INTP7_EDGE_FALLING_SEL;
+    EGP0 = _01_INTP0_EDGE_RISING_SEL;
     /* Set INTP7 pin */
     PM14 |= 0x02U;
 }

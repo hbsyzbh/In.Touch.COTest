@@ -34,6 +34,7 @@ void on_csi01_done()
  void SPIPut(uint8_t v)
 {
 	 SPI01_CMD_BUF[0] = v;
+	 g_csi01_done = 0;
 	 R_CSI01_Send_Receive(SPI01_CMD_BUF, 1, SPI01_ACK_BUF);
 	 while(g_csi01_done == 0);
 }

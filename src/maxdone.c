@@ -402,7 +402,7 @@ static void fillRTCRespValue()
 static unsigned char TestMRF89XA()
 {
 	drv_testMRF89XA();
-	return ACK_OK;
+	return ACK_NG;
 }
 
 static void analysisCmd()
@@ -455,6 +455,11 @@ static void analysisCmd()
 
 	case Cmd_initI2CPort:
 		ackbuff[ACK_DATA_POS] = InitI2cPort();
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
+		break;
+
+	case Cmd_testRF:
+		ackbuff[ACK_DATA_POS] = TestMRF89XA();
 		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
 		break;
 

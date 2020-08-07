@@ -261,14 +261,8 @@ static void waitI2cDone()
 
 unsigned char TestI2cPort()
 {
-	sendbuf[0] = I2cAddr;
-
-    SPIE0 = 1U;
-    WTIM0 = 1U;
-    ACKE0 = 1U;
-    IICAMK0 = 1U;
-
 	unsigned int i;
+	sendbuf[0] = I2cAddr;
 
 	STT0 = 1;	//start
 	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
@@ -285,6 +279,7 @@ unsigned char TestI2cPort()
 	waitI2cDone();
 
 
+	ACKE0 = 1U;
 	for(i = 0; i < 7; i++)
 	{
 		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
@@ -292,6 +287,14 @@ unsigned char TestI2cPort()
 		waitI2cDone();
 		revbuf[i] = IICA0;
 	}
+
+	ACKE0 = 0U;
+
+	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+	WREL0 = 1;
+	waitI2cDone();
+	revbuf[7] = IICA0;
+
 	SPT0 = 1;	//stop
 
 	if(0 == strncmp("Maxdone", revbuf, 7)){
@@ -303,15 +306,9 @@ unsigned char TestI2cPort()
 
 unsigned char InitI2cPort()
 {
+	unsigned int i;
 
 	sendbuf[0] = I2cAddr;
-
-    SPIE0 = 1U;
-    WTIM0 = 1U;
-    ACKE0 = 1U;
-    IICAMK0 = 1U;
-
-	unsigned int i;
 
 	//R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 10);
 	STT0 = 1;	//start

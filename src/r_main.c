@@ -78,6 +78,13 @@ void R_MAIN_UserInit(void)
     R_CSI10_Start();
     R_CSI01_Start();
     R_INTC0_Start();
+
+    //IIC Start
+    SPIE0 = 1U;
+	WTIM0 = 1U;
+	ACKE0 = 1U;
+	IICAMK0 = 1U;
+
     EI();
 
     MRF89XA_RESET = 0;

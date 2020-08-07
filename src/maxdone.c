@@ -248,16 +248,60 @@ unsigned char TestI2cPort()
 	unsigned char I2cAddr = 0x0;
 
 	sendbuf[0] = I2cAddr;
-	g_i2c_done = 0;
-	if(MD_OK == R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 200)){
-		while (g_i2c_done == 0);
 
-		g_i2c_done = 0;
-		if (MD_OK == R_IICA0_Master_Receive(deviceaddr, revbuf, 8, 200)) {
-			while (g_i2c_done == 0);
+    SPIE0 = 1U;
+    WTIM0 = 1U;
+    ACKE0 = 1U;
+    IICAMK0 = 1U;
 
+	for(;;){
+		unsigned int i;
+#if 0
+		//R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 10);
+		STT0 = 1;	//start
+		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+		IICA0 = 0xA0; // 写
+		while(0 == IICAIF0);
+
+		for(i = 0; i < 8; i++)
+		{
+			IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+			IICA0 = sendbuf[i]; // 地址
+			while(0 == IICAIF0);
+		}
+		SPT0 = 1;	//stop
+
+		for(i = 0; i < 5000; i++)
+			;
+#endif
+
+		STT0 = 1;	//start
+		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+		IICA0 = 0xA0; // 写
+		while(0 == IICAIF0);
+
+		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+		IICA0 = 0x00; // 地址
+		while(0 == IICAIF0);
+
+		STT0 = 1;	//start
+		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+		IICA0 = 0xA1; // 读
+		while(0 == IICAIF0);
+
+
+		for(i = 0; i < 7; i++)
+		{
+			IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+			WREL0 = 1;
+			while(0 == IICAIF0);
+			revbuf[i] = IICA0;
+		}
+
+		if(0 == strncmp("Maxdone", revbuf, 7)){
 			return ACK_OK;
 		}
+
 	}
 
 	return ACK_NG;
@@ -353,6 +397,7 @@ static void analysisCmd()
 void doUartTask()
 {
 	//TestMRF89XA();
+	//TestI2cPort();
 
 	switch(UartState)
 	{

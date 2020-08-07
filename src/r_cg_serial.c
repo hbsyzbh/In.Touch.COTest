@@ -477,10 +477,10 @@ void R_IICA0_Create(void)
     SVA0 = _10_IICA0_MASTERADDRESS;
     STCEN0 = 1U;
     IICRSV0 = 1U;
-    SPIE0 = 0U;
+    SPIE0 = 1U;
     WTIM0 = 1U;
     ACKE0 = 1U;
-    IICAMK0 = 0U;
+    //IICAMK0 = 0U;
     IICE0 = 1U;
     LREL0 = 1U;
     /* Set SCLA0, SDAA0 pin */

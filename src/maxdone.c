@@ -30,9 +30,9 @@ typedef enum {
 	Cmd_testRF 			= 5,
 	Cmd_testI2CE2prom,
 	Cmd_testEthernet,
-	Cmd_testLED
+	Cmd_testLED,
 
-
+	Cmd_initI2CPort = 0xF4
 }	CMD_TYPE;
 
 #define ACK_HEAD (0x4F)
@@ -83,6 +83,10 @@ static char isCmdDatalenValied()
 			break;
 		case Cmd_testLED:
 			return datalen == 1;
+			break;
+
+		case Cmd_initI2CPort:
+			return datalen == 0;
 			break;
 	}
 
@@ -240,12 +244,65 @@ unsigned char TestSpiFlash()
 	return ACK_NG;
 }
 
+unsigned char sendbuf[8] = " Maxdone";
+unsigned char revbuf[8] = {0};
+const unsigned char deviceaddr = 0xA0;
+unsigned char I2cAddr = 0x0;
+
+static void waitI2cDone()
+{
+	unsigned int i = 0;
+
+	while((0 == IICAIF0) && (i < 0xFFFF))
+	{
+		i++;
+	}
+}
+
 unsigned char TestI2cPort()
 {
-	unsigned char sendbuf[8] = " Maxdone";
-	unsigned char revbuf[8] = {0};
-	const unsigned char deviceaddr = 0xA0;
-	unsigned char I2cAddr = 0x0;
+	sendbuf[0] = I2cAddr;
+
+    SPIE0 = 1U;
+    WTIM0 = 1U;
+    ACKE0 = 1U;
+    IICAMK0 = 1U;
+
+	unsigned int i;
+
+	STT0 = 1;	//start
+	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+	IICA0 = 0xA0; // 写
+	waitI2cDone();
+
+	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+	IICA0 = 0x00; // 地址
+	waitI2cDone();
+
+	STT0 = 1;	//start
+	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+	IICA0 = 0xA1; // 读
+	waitI2cDone();
+
+
+	for(i = 0; i < 7; i++)
+	{
+		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+		WREL0 = 1;
+		waitI2cDone();
+		revbuf[i] = IICA0;
+	}
+	SPT0 = 1;	//stop
+
+	if(0 == strncmp("Maxdone", revbuf, 7)){
+		return ACK_OK;
+	}
+
+	return ACK_NG;
+}
+
+unsigned char InitI2cPort()
+{
 
 	sendbuf[0] = I2cAddr;
 
@@ -254,58 +311,28 @@ unsigned char TestI2cPort()
     ACKE0 = 1U;
     IICAMK0 = 1U;
 
-	for(;;){
-		unsigned int i;
-#if 0
-		//R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 10);
-		STT0 = 1;	//start
+	unsigned int i;
+
+	//R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 10);
+	STT0 = 1;	//start
+	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
+	IICA0 = 0xA0; // 写
+	waitI2cDone();
+
+	for(i = 0; i < 8; i++)
+	{
 		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-		IICA0 = 0xA0; // 写
-		while(0 == IICAIF0);
-
-		for(i = 0; i < 8; i++)
-		{
-			IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-			IICA0 = sendbuf[i]; // 地址
-			while(0 == IICAIF0);
-		}
-		SPT0 = 1;	//stop
-
-		for(i = 0; i < 5000; i++)
-			;
-#endif
-
-		STT0 = 1;	//start
-		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-		IICA0 = 0xA0; // 写
-		while(0 == IICAIF0);
-
-		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-		IICA0 = 0x00; // 地址
-		while(0 == IICAIF0);
-
-		STT0 = 1;	//start
-		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-		IICA0 = 0xA1; // 读
-		while(0 == IICAIF0);
-
-
-		for(i = 0; i < 7; i++)
-		{
-			IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-			WREL0 = 1;
-			while(0 == IICAIF0);
-			revbuf[i] = IICA0;
-		}
-
-		if(0 == strncmp("Maxdone", revbuf, 7)){
-			return ACK_OK;
-		}
-
+		IICA0 = sendbuf[i]; // 地址
+		waitI2cDone();
 	}
+	SPT0 = 1;	//stop
 
-	return ACK_NG;
+	for(i = 0; i < 5000; i++)
+		;
+
+	return TestI2cPort();
 }
+
 
 const unsigned char notsupport[] = {0x40, 0, 0};
 const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 'C'};
@@ -386,6 +413,10 @@ static void analysisCmd()
 		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
 		break;
 
+	case Cmd_initI2CPort:
+		ackbuff[ACK_DATA_POS] = InitI2cPort();
+		R_UART2_Send(ackbuff, 	ACK_DATA_POS + 1);
+		break;
 
 	default:
 		R_UART2_Send(notsupport, 3);

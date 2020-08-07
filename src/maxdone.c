@@ -118,8 +118,10 @@ static unsigned char SPI10_ACK_BUF[32];
 
 unsigned char g_csi10_done = 0;
 
-static unsigned char spi10_isS25FL116K(void)
+static void spi10_checkFlashID(void)
 {
+	char str[16] = "";
+
 	SPI10_CMD_BUF[0] = S25FL_JEDECID;
 	P0_bit.no1 = 0;
 	g_csi10_done = 0;
@@ -131,8 +133,27 @@ static unsigned char spi10_isS25FL116K(void)
 			(SPI10_ACK_BUF[2] == 0x40) &&
 			(SPI10_ACK_BUF[3] == 0x15)
 		) {
-		 return 1;
-	}else return 0;
+		UART2_Sendstr("is S25FL116K");
+	} else if ( (SPI10_ACK_BUF[1] == 0x1F) &&
+				(SPI10_ACK_BUF[2] == 0x86) &&
+				(SPI10_ACK_BUF[3] == 0x01)
+	){
+		UART2_Sendstr("is AT25SF161");
+	} else {
+		UART2_Sendstr("Unknown");
+	}
+
+	str[0] = SPI10_ACK_BUF[1] / 16 + '0';
+	str[1] = SPI10_ACK_BUF[1] % 16 + '0';
+	str[2] = SPI10_ACK_BUF[2] / 16 + '0';
+	str[3] = SPI10_ACK_BUF[2] % 16 + '0';
+	str[4] = SPI10_ACK_BUF[3] / 16 + '0';
+	str[5] = SPI10_ACK_BUF[3] % 16 + '0';
+
+	if(1) {
+		UART2_Sendstr("JEDECID:0x");
+		UART2_Sendstr(str);
+	}
 }
 
 static void spi10_read(unsigned char *addr, uint16_t datalen)
@@ -155,6 +176,28 @@ static void spi10_writeEnable()
 	while(g_csi10_done == 0);
 }
 
+static void spi10_writeDone()
+{
+	unsigned char timeout, dly;
+	SPI10_CMD_BUF[0] = 0x05;
+
+	for(timeout = 0; timeout < 200; timeout++)
+	{
+		P0_bit.no1 = 0;
+		g_csi10_done = 0;
+		R_CSI10_Send_Receive(SPI10_CMD_BUF, 2, SPI10_ACK_BUF);
+		while(g_csi10_done == 0);
+
+		if((SPI10_ACK_BUF[1] & 0x01) == 0x00){
+			return;
+		}
+
+
+		for(dly = 0; dly < 200; dly++)
+			;
+	}
+}
+
 static void spi10_erase(unsigned char *addr)
 {
 	spi10_writeEnable();
@@ -166,6 +209,8 @@ static void spi10_erase(unsigned char *addr)
 	g_csi10_done = 0;
 	R_CSI10_Send_Receive(SPI10_CMD_BUF, 4,SPI10_ACK_BUF);
 	while(g_csi10_done == 0);
+
+	spi10_writeDone();
 }
 
 static void spi10_write(unsigned char *addr, unsigned char *data, uint16_t datalen)
@@ -180,6 +225,8 @@ static void spi10_write(unsigned char *addr, unsigned char *data, uint16_t datal
 	g_csi10_done = 0;
 	R_CSI10_Send_Receive(SPI10_CMD_BUF, datalen + 4,SPI10_ACK_BUF);
 	while(g_csi10_done == 0);
+
+	spi10_writeDone();
 }
 
 void on_csi10_done()
@@ -205,43 +252,39 @@ unsigned char TestSpiFlash()
 {
 	int i, j;
 
-	if(spi10_isS25FL116K())
-	{
-		UART2_Sendstr("Check isS25FL116K OK");
-		for(i = 0; i < TEST_ITEM; i++)
-		{
-			//erase
-			spi10_erase(TestAddr[i]);
-			spi10_read(TestAddr[i], 8);
-			for(j = 0; j < 8; j++)
-			if(0xFF != SPI10_ACK_BUF[4+j]) {
-				UART2_Sendstr("Check read as 0xFF NG");
-				return ACK_NG;
-			}
-			//write 1234567
-			spi10_write(TestAddr[i], "1234567", 8);
-			//read as 1234567
-			spi10_read(TestAddr[i], 8);
-			if(0 != strncmp("1234567", &SPI10_ACK_BUF[4], 8)) {
-				UART2_Sendstr("Check read as 1234567 NG");
-				return ACK_NG;
-			}
-			//erase
-			spi10_erase(TestAddr[i]);
-			//read as all 0xFF
-			spi10_read(TestAddr[i], 8);
-			for(j = 0; j < 8; j++)
-			if(0xFF != SPI10_ACK_BUF[4+j]) {
-				UART2_Sendstr("Check read as 0xFF NG");
-				return ACK_NG;
-			}
-		}
+	spi10_checkFlashID();
 
-		return ACK_OK;
+	for(i = 0; i < TEST_ITEM; i++)
+	{
+		//erase
+		spi10_erase(TestAddr[i]);
+		spi10_read(TestAddr[i], 8);
+		for(j = 0; j < 8; j++)
+		if(0xFF != SPI10_ACK_BUF[4+j]) {
+			UART2_Sendstr("Check read as 0xFF NG");
+			return ACK_NG;
+		}
+		//write 1234567
+		spi10_write(TestAddr[i], "1234567", 8);
+		//read as 1234567
+		spi10_read(TestAddr[i], 8);
+		if(0 != strncmp("1234567", &SPI10_ACK_BUF[4], 8)) {
+			UART2_Sendstr("Check read as 1234567 NG");
+			return ACK_NG;
+		}
+		//erase
+		spi10_erase(TestAddr[i]);
+		//read as all 0xFF
+		spi10_read(TestAddr[i], 8);
+		for(j = 0; j < 8; j++)
+		if(0xFF != SPI10_ACK_BUF[4+j]) {
+			UART2_Sendstr("Check read as 0xFF NG");
+			return ACK_NG;
+		}
 	}
 
 
-	return ACK_NG;
+	return ACK_OK;
 }
 
 unsigned char sendbuf[8] = " Maxdone";
@@ -425,7 +468,6 @@ static void analysisCmd()
 void doUartTask()
 {
 	//TestMRF89XA();
-	//TestI2cPort();
 
 	switch(UartState)
 	{

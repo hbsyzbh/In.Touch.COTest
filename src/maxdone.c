@@ -309,16 +309,16 @@ unsigned char TestI2cPort()
 
 	STT0 = 1;	//start
 	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-	IICA0 = 0xA0; // ÂÜô
+	IICA0 = 0xA0; // –¥
 	waitI2cDone();
 
 	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-	IICA0 = 0x00; // Âú∞ÂùÄ
+	IICA0 = 0x00; // µÿ÷∑
 	waitI2cDone();
 
 	STT0 = 1;	//start
 	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-	IICA0 = 0xA1; // ËØª
+	IICA0 = 0xA1; // ∂¡
 	waitI2cDone();
 
 
@@ -356,13 +356,13 @@ unsigned char InitI2cPort()
 	//R_IICA0_Master_Send(deviceaddr, sendbuf, 8, 10);
 	STT0 = 1;	//start
 	IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-	IICA0 = 0xA0; // ÂÜô
+	IICA0 = 0xA0; // –¥
 	waitI2cDone();
 
 	for(i = 0; i < 8; i++)
 	{
 		IICAIF0 = 0U; /* clear INTIICA0 interrupt flag */
-		IICA0 = sendbuf[i]; // Âú∞ÂùÄ
+		IICA0 = sendbuf[i]; // µÿ÷∑
 		waitI2cDone();
 	}
 	SPT0 = 1;	//stop
@@ -375,7 +375,7 @@ unsigned char InitI2cPort()
 
 
 const unsigned char notsupport[] = {0x40, 0, 0};
-const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 'C'};
+const unsigned char hardwareType[] = {ACK_HEAD, 0, 1, 0x0C};
 unsigned char ackbuff[16] = {ACK_HEAD, 0};
 rtc_counter_value_t value;
 
@@ -409,6 +409,7 @@ static void analysisCmd()
 {
 
 	ackbuff[ACK_CMD_POS] = cmd;
+	ackbuff[ACK_LEN_POS] = 1;
 
 	switch(cmd) {
 	case Cmd_getType:
